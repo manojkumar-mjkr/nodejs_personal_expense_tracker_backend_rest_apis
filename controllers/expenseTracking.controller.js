@@ -84,4 +84,49 @@ exports.list = async (req, res) => {
   } catch (error) {
     return res.status(500).json(error('Failed to fetch transactions', 500, error.message));
   }
+};//need to work for date time filter, pagination, sorting
+
+exports.info = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const transaction = await ExpenseTracking.detail(id);
+
+    if (!transaction) {
+      return res.status(404).json(error('Transaction not found', 404));
+    }
+
+    return res.status(200).json(success('Transaction fetched successfully', transaction));
+  } catch (error) {
+    return res.status(500).json(error('Internal server error', 500, error.message));
+  }
+};
+
+exports.update = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateCount = await ExpenseTracking.update(id, req.body);
+
+    if (updateCount === 0) {
+      return res.status(404).json(response.error('Transaction not found', 404));
+    }
+
+    return res.status(200).json(response.success('Transaction updated successfully'));
+  } catch (error) {
+    return res.status(500).json(response.error('Failed to update transaction', 500, error.message));
+  }
+};
+
+exports.delete = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleteCount = await ExpenseTracking.remove(id);
+
+    if (deleteCount === 0) {
+      return res.status(404).json(response.error('Transaction not found', 404));
+    }
+
+    return res.status(200).json(response.success('Transaction deleted successfully'));
+  } catch (error) {
+    return res.status(500).json(response.error('Failed to delete transaction', 500, error.message));
+  }
 };

@@ -7,5 +7,8 @@ router.get('/test', expenseController.expenseTracking); // Test route to check i
 
 router.post('/create', expenseController.create);
 router.post('/list', expenseController.list);
+router.get('/info/:id', expenseController.info);
+router.patch('/update/:id', expenseController.update);
+router.delete('/delete/:id', expenseController.delete);
 
 module.exports = router;    
