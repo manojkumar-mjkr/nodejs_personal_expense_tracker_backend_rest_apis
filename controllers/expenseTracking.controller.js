@@ -95,7 +95,7 @@ exports.info = async (req, res) => {
       return res.status(404).json(error('Transaction not found', 404));
     }
 
-    return res.status(200).json(success('Transaction fetched successfully', transaction));
+    return res.status(200).json(success(1,'Transaction fetched successfully', transaction));
   } catch (error) {
     return res.status(500).json(error('Internal server error', 500, error.message));
   }
@@ -104,15 +104,42 @@ exports.info = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateCount = await ExpenseTracking.update(id, req.body);
 
-    if (updateCount === 0) {
+    // Step 1: Get existing record
+    const existing = await ExpenseTracking.findById(id);
+    if (!existing) {
       return res.status(404).json(response.error('Transaction not found', 404));
     }
 
-    return res.status(200).json(response.success('Transaction updated successfully'));
-  } catch (error) {
-    return res.status(500).json(response.error('Failed to update transaction', 500, error.message));
+    // Step 2: Merge existing with incoming body
+    const input = req.body;
+
+    // Ensure correct date parsing and breakdown
+    const transaction_date = input.transaction_date || existing.transaction_date;
+    const dateObj = new Date(transaction_date);
+    const day = dateObj.getDate();
+    const month = dateObj.getMonth() + 1;
+    const year = dateObj.getFullYear();
+
+    // Step 3: Construct final update data
+    const finalData = {
+      cash_flow_id: input.cash_flow_id ?? existing.cash_flow_id,
+      income_category_id: input.income_category_id ?? existing.income_category_id,
+      expense_category_id: input.expense_category_id ?? existing.expense_category_id,
+      amount: input.amount ?? existing.amount,
+      transaction_date,
+      day,
+      month,
+      year,
+      description: input.description ?? existing.description,
+    };
+
+    // Step 4: Update DB
+    const updateCount = await ExpenseTracking.update(id, finalData);
+
+    return res.status(200).json(success(1,'Transaction updated successfully'));
+  } catch (err) {
+    return res.status(500).json(error('Failed to update transaction', 500, err.message));
   }
 };
 
@@ -122,11 +149,11 @@ exports.delete = async (req, res) => {
     const deleteCount = await ExpenseTracking.remove(id);
 
     if (deleteCount === 0) {
-      return res.status(404).json(response.error('Transaction not found', 404));
+      return res.status(404).json(error('Transaction not found', 404));
     }
 
-    return res.status(200).json(response.success('Transaction deleted successfully'));
+    return res.status(200).json(success('Transaction deleted successfully'));
   } catch (error) {
-    return res.status(500).json(response.error('Failed to delete transaction', 500, error.message));
+    return res.status(500).json(error('Failed to delete transaction', 500, error.message));
   }
 };

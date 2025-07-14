@@ -94,48 +94,37 @@ exports.detail = async (transactionId) => {
 };
 
 // models/expenseTrackingModel.js
-exports.update = async (transactionId, data) => {
-  const {
-    cash_flow_id,
-    income_category_id,
-    expense_category_id,
-    amount,
-    transaction_date,
-    day,
-    month,
-    year,
-    description
-  } = data;
+exports.findById = async (id) => {
+  const [rows] = await db.query(`SELECT * FROM expense_tracking WHERE id = ?`, [id]);
+  return rows[0]; // return single record
+};
 
-  const [result] = await db.query(
-    `
-    UPDATE expense_tracking
-    SET
-      cash_flow_id = ?,
-      income_category_id = ?,
-      expense_category_id = ?,
-      amount = ?,
-      transaction_date = ?,
-      day = ?,
-      month = ?,
-      year = ?,
-      description = ?,
+exports.update = async (id, data) => {
+  const [result] = await db.query(`
+    UPDATE expense_tracking SET 
+      cash_flow_id = ?, 
+      income_category_id = ?, 
+      expense_category_id = ?, 
+      amount = ?, 
+      transaction_date = ?, 
+      day = ?, 
+      month = ?, 
+      year = ?, 
+      description = ?, 
       updated_date_time = CURRENT_TIMESTAMP
     WHERE id = ?
-    `,
-    [
-      cash_flow_id,
-      income_category_id || null,
-      expense_category_id || null,
-      amount,
-      transaction_date,
-      day,
-      month,
-      year,
-      description || null,
-      transactionId
-    ]
-  );
+  `, [
+    data.cash_flow_id,
+    data.income_category_id,
+    data.expense_category_id,
+    data.amount,
+    data.transaction_date,
+    data.day,
+    data.month,
+    data.year,
+    data.description,
+    id
+  ]);
 
   return result.affectedRows;
 };
