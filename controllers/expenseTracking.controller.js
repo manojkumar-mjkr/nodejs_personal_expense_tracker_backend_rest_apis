@@ -17,6 +17,7 @@ exports.expenseTracking = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     const user_id = req.user.userId;
+    const userInfo = req.user;
     const {
       cash_flow_id,
       income_category_id,
@@ -63,6 +64,9 @@ exports.create = async (req, res) => {
       description
     });
 
+    const token = generateToken({ userId: userInfo.id, email: userInfo.email });
+    const refreshToken = generateRefreshToken({ userId: userInfo.id, email: userInfo.email });
+
     return res.status(201).json({ message: 'Transaction added', transactionId });
 
   } catch (err) {
@@ -74,13 +78,18 @@ exports.create = async (req, res) => {
 exports.list = async (req, res) => {
   try {
     const user_id = req.user.userId;
+    const userInfo = req.user;
     const transactions = await ExpenseTracking.list({});
     const result = transactions.map(t => ({
       ...t,
       amount: parseFloat(t.amount),
       transaction_date: new Date(t.transaction_date),
     }));
-    return res.status(201).json(success(1,'transactions fetched successfully', { transactionData: result }));
+
+    const token = generateToken({ userId: userInfo.userId, email: userInfo.email });
+    const refreshToken = generateRefreshToken({ userId: userInfo.userId, email: userInfo.email });
+
+    return res.status(201).json(success(1,'transactions fetched successfully', { transactionData: result,token,refreshToken }));
   } catch (error) {
     return res.status(500).json(error('Failed to fetch transactions', 500, error.message));
   }
@@ -89,13 +98,17 @@ exports.list = async (req, res) => {
 exports.info = async (req, res) => {
   try {
     const { id } = req.params;
+    const userInfo = req.user;
     const transaction = await ExpenseTracking.detail(id);
 
     if (!transaction) {
       return res.status(404).json(error('Transaction not found', 404));
     }
 
-    return res.status(200).json(success(1,'Transaction fetched successfully', transaction));
+    const token = generateToken({ userId: userInfo.userId, email: userInfo.email });
+    const refreshToken = generateRefreshToken({ userId: userInfo.userId, email: userInfo.email });
+
+    return res.status(200).json(success(1,'Transaction fetched successfully', {transaction, token, refreshToken }));
   } catch (error) {
     return res.status(500).json(error('Internal server error', 500, error.message));
   }
@@ -104,6 +117,7 @@ exports.info = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
+    const userInfo = req.user;
 
     // Step 1: Get existing record
     const existing = await ExpenseTracking.findById(id);
@@ -137,7 +151,10 @@ exports.update = async (req, res) => {
     // Step 4: Update DB
     const updateCount = await ExpenseTracking.update(id, finalData);
 
-    return res.status(200).json(success(1,'Transaction updated successfully'));
+    const token = generateToken({ userId: userInfo.userId, email: userInfo.email });
+    const refreshToken = generateRefreshToken({ userId: userInfo.userId, email: userInfo.email });
+
+    return res.status(200).json(success(1,'Transaction updated successfully',{ transactionId: id, token, refreshToken }));
   } catch (err) {
     return res.status(500).json(error('Failed to update transaction', 500, err.message));
   }
@@ -146,11 +163,16 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const { id } = req.params;
+    const userInfo = req.user;
     const deleteCount = await ExpenseTracking.remove(id);
     if (deleteCount === 0) {
       return res.status(404).json(error('Transaction not found', 404));
     }
-    return res.status(200).json(success('Transaction deleted successfully'));
+
+    const token = generateToken({ userId: userInfo.userId, email: userInfo.email });
+    const refreshToken = generateRefreshToken({ userId: userInfo.userId, email: userInfo.email });
+
+    return res.status(200).json(success('Transaction deleted successfully',{token, refreshToken}));
   } catch (error) {
     return res.status(500).json(error('Failed to delete transaction', 500, error.message));
   }
