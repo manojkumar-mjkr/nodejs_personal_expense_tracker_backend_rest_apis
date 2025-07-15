@@ -9,9 +9,10 @@ const { testConnection } = require('./config/db');
 const validateStaticToken = require('./middlewares/staticToken.middleware');
 const validateUserJWT = require('./middlewares/jwt.middleware');
 
-//routes
+//controller based routes
 const authRoutes = require('./routes/auth.routes');
 const transactionRoutes = require('./routes/expenseTracking.routes');
+const summaryRoutes = require('./routes/summary.routes');
 
 
 
@@ -43,6 +44,7 @@ app.use(rateLimiter);
 // Routes
 app.use('/api/auth', validateStaticToken, authRoutes);
 app.use('/api/expenseTracking', validateUserJWT, transactionRoutes);
+app.use('/api/summary', validateUserJWT, summaryRoutes);
 
 // Health check service
 app.get('/', (req, res) => res.send('Expense Tracker API Running'));

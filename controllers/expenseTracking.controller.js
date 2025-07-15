@@ -108,7 +108,7 @@ exports.update = async (req, res) => {
     // Step 1: Get existing record
     const existing = await ExpenseTracking.findById(id);
     if (!existing) {
-      return res.status(404).json(response.error('Transaction not found', 404));
+      return res.status(404).json(error('Transaction not found', 404));
     }
 
     // Step 2: Merge existing with incoming body
@@ -147,13 +147,13 @@ exports.delete = async (req, res) => {
   try {
     const { id } = req.params;
     const deleteCount = await ExpenseTracking.remove(id);
-
     if (deleteCount === 0) {
       return res.status(404).json(error('Transaction not found', 404));
     }
-
     return res.status(200).json(success('Transaction deleted successfully'));
   } catch (error) {
     return res.status(500).json(error('Failed to delete transaction', 500, error.message));
   }
 };
+
+
