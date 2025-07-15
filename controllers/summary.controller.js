@@ -18,9 +18,25 @@ exports.monthly = async (req, res) => {
 
     const summary = await ExpenseTracking.getMonthlySummary(user_id, month, year);
     
-    return res.status(200).json(success('Monthly summary retrieved successfully', summary));
+    return res.status(200).json(success(1, 'Monthly summary retrieved successfully', summary));
   } catch (err) {
     console.error(err);
     return res.status(500).json(error('Internal server error', err.message));
   }
 }
+
+exports.yearly = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { year } = req.body;
+
+    if (!year) {
+      return res.status(400).json(error('Missing year in request body', 400));
+    }
+
+    const summary = await ExpenseTracking.getYearlySummary(userId, parseInt(year));
+    return res.status(200).json(success(1,'Yearly summary fetched', summary));
+  } catch (err) {
+    return res.status(500).json(error('Failed to fetch yearly summary', 500, err.message));
+  }
+};

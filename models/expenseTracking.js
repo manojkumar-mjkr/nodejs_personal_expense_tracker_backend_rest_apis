@@ -152,12 +152,34 @@ exports.getMonthlySummary = async (userId, month, year) => {
   );
 
   const result = rows[0] || {};
-  const total_income = parseFloat(result.total_income || 0);
-  const total_expense = parseFloat(result.total_expense || 0);
-  const balance = total_income - total_expense;
+  const totalIncome = parseFloat(result.total_income || 0);
+  const totalExpense = parseFloat(result.total_expense || 0);
+  const balance = totalIncome - totalExpense;
 
-  return { total_income, total_expense, balance };
+  return { totalIncome, totalExpense, balance };
 };
+
+exports.getYearlySummary = async (userId, year) => {
+  const [rows] = await db.query(
+    `
+    SELECT
+      SUM(CASE WHEN cash_flow_id = 1 THEN amount ELSE 0 END) AS total_income,
+      SUM(CASE WHEN cash_flow_id = 2 THEN amount ELSE 0 END) AS total_expense
+    FROM expense_tracking
+    WHERE user_id = ?
+      AND year = ?
+    `,
+    [userId, year]
+  );
+
+  const result = rows[0] || {};
+  const totalIncome = parseFloat(result.total_income || 0);
+  const totalExpense = parseFloat(result.total_expense || 0);
+  const balance = totalIncome - totalExpense;
+
+  return { totalIncome, totalExpense, balance };
+};
+
 
 
 
